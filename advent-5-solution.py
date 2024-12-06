@@ -9,6 +9,56 @@ result_reordered = 0
 with open(file_path, encoding='utf-8') as file:
     lines = file.readlines()
 
+def create_rule_list(rules):
+    first = list()
+    last = list()
+
+    while len(rules) > 0:
+        for key, value in rules.items():
+
+            first_item = None
+            last_item = None
+            
+            if len(value["before"]) == 0:
+                first.append(key)
+                first_item = int(key)
+            if len(value["after"]) == 0:
+                last_item = int(key)
+                last.insert(0, key)
+    
+        if first_item is None and last_item is None:
+            print("first_item and last_item are None")
+            continue
+
+        print(f"first_item is: {first_item}")
+        print(f"last_item is: {last_item}")
+        if first_item == last_item and first_item is not None:
+            last.insert(0, first_item)
+            return first + last
+        
+        if first_item is not None:
+            rules.pop(str(first_item))
+        if last_item is not None:
+            rules.pop(str(last_item))
+        
+        for key, value in rules.items():
+            if first_item in value["before"]:
+                rules[key]["before"].remove(first_item)
+            if last_item in value["before"]:
+                rules[key]["before"].remove(last_item)
+            if first_item in value["after"]:
+                rules[key]["after"].remove(first_item)
+            if last_item in value["after"]:
+                rules[key]["after"].remove(last_item)
+        print('rules is now:')
+        # pprint.pp(rules)
+    
+        print(f"first is: {first}")
+        print(f"last is: {last}")
+    return first + last
+
+def reordering_new(pages, rules):
+    ''
 def reordering(pages, rules):
     cpt = 0
 
@@ -89,8 +139,8 @@ for line in lines:
         else:
             rules[order[1]]["before"].add(int(order[0]))
     # verify if the list respect the rules
-    else:
-        pages = line.strip().split(',')
+    elif ',' in line:
+        pages = list(map(int, line.strip().split(',')))
         page_length = len(pages)
         in_order = True
         
@@ -104,7 +154,7 @@ for line in lines:
             after = rules[pages[i]]["after"]
             if any(int(page) in after for page in pages[0:i]) or any(int(page) in before for page in pages[i+1:page_length]):
                 print(f"Line {line_number} is not in order")
-                result_reordered += reordering(pages, rules)
+                # result_reordered += reordering(pages, rules)
                 in_order = False
                 break
 
@@ -117,6 +167,11 @@ for line in lines:
         line_number += 1
 
 pprint.pp(rules)
+
+ordered_list = create_rule_list(rules)
+
+# print(f"ordered list is: {ordered_list}")
+
 print(f"answer 1 is: {result}")
 print(f"answer 2 is: {result_reordered}")
 # 6075 is too high
